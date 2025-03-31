@@ -1,3 +1,4 @@
+#demo.py
 import tkinter as tk
 from distutils.dist import command_re
 from tkinter import filedialog, messagebox
@@ -19,6 +20,7 @@ class MainPage:
     def __init__(self, root):
 
         self.root = root
+        self.root.minsize(800, 600)  # 设置最小窗口大小
 
         # 初始化变量
         self.original_image = None
@@ -181,9 +183,12 @@ class MainPage:
         self.parameter_frame.frame.pack(fill=tk.X, padx=10, pady=5, after=self.original_label.winfo_parent())
 
     def initialize_parameter_frame(self):
-        # 初始化参数框，创建一个默认的参数输入框
+        # 初始化参数框，创建一个包含三种类型参数的示例
         default_params = {
-            "example_param": {"label": "示例参数", "type": "entry", "default": ""}
+            "text_param": {"label": "文本输入", "type": "entry", "default": "默认文本"},
+            "scale_param": {"label": "滑块调整", "type": "scale", "range": (0, 100), "default": 50},
+            "combo_param": {"label": "下拉选择", "type": "combobox", "values": ["选项1", "选项2", "选项3"],
+                            "default": "选项1"}
         }
         self.parameter_frame.set_params(default_params)
 
