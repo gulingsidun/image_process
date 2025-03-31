@@ -208,9 +208,35 @@ class MainPage:
     def save_image(self):
         if self.processing_image is not None:
             self.saving_image = self.processing_image
-            file_path = filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG", "*.jpg"), ("PNG", "*.png"), ("BMP", "*.bmp"), ("GIF", "*.gif")])
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".jpg",
+                filetypes=[
+                    ("JPEG", "*.jpg"),
+                    ("PNG", "*.png"),
+                    ("BMP", "*.bmp"),
+                    ("GIF", "*.gif")
+                ]
+            )
             if file_path:
-                cv2.imwrite(file_path, self.saving_image)
+                # 使用 cv2.imencode 将图像编码为字节数组
+                if file_path.lower().endswith('.jpg') or file_path.lower().endswith('.jpeg'):
+                    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 95]
+                    img_encode = cv2.imencode('.jpg', self.saving_image, encode_param)[1]
+                elif file_path.lower().endswith('.png'):
+                    encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), 9]
+                    img_encode = cv2.imencode('.png', self.saving_image, encode_param)[1]
+                elif file_path.lower().endswith('.bmp'):
+                    img_encode = cv2.imencode('.bmp', self.saving_image)[1]
+                elif file_path.lower().endswith('.gif'):
+                    img_encode = cv2.imencode('.gif', self.saving_image)[1]
+                else:
+                    messagebox.showerror("错误", "不支持的文件格式")
+                    return
+
+                # 将字节数组写入文件
+                with open(file_path, 'wb') as f:
+                    f.write(img_encode.tobytes())
+
                 messagebox.showinfo("保存成功", f"图像已保存到: {file_path}")
         else:
             messagebox.showwarning("警告", "没有可保存的图像")
@@ -228,28 +254,29 @@ class MainPage:
             self.processed_label.config(image=processed_imgtk)
             self.processed_label.image = processed_imgtk
 
-    def convert_cv_to_tk(self, cv_image):#将 OpenCV 格式的图像转换为 Tkinter 可以显示的格式
+    def convert_cv_to_tk(self, cv_image):  # 将 OpenCV 格式的图像转换为 Tkinter 可以显示的格式
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+
         img = Image.fromarray(cv_image)
-        
+
         # 获取显示区域的大小
         display_width = self.original_label.winfo_width()
         display_height = self.original_label.winfo_height()
-        
-        if display_width > 1 and display_height > 1:  # 确保显示区域已经被正确初始化
+
+        if display_width > 1 and display_height > 1:   # 确保显示区域已经被正确初始化
             # 计算缩放比例
             img_width, img_height = img.size
             width_ratio = display_width / img_width
             height_ratio = display_height / img_height
             scale_ratio = min(width_ratio, height_ratio)
-            
-            # 计算新的尺寸
+
+        # 计算新的尺寸
             new_width = int(img_width * scale_ratio)
             new_height = int(img_height * scale_ratio)
-            
-            # 对图像进行缩放
+
+        # 对图像进行缩放
             img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-        
+
         imgtk = ImageTk.PhotoImage(image=img)
         return imgtk
 
